@@ -115,36 +115,36 @@ const Agent = ({
   }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
   const handleCall = async () => {
-  setCallStatus(CallStatus.CONNECTING);
+    setCallStatus(CallStatus.CONNECTING);
 
-  try {
     if (type === "generate") {
-      await vapi.start({
-        assistant: process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
-        variables: {
-          username: userName,
-          userid: userId,
-        },
-      });
+      await vapi.start(
+        // undefined,
+        // undefined,
+        // undefined,
+        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
+        {
+          variableValues: {
+            username: userName,
+            userid: userId,
+          },
+        }
+      );
     } else {
       let formattedQuestions = "";
       if (questions) {
-        formattedQuestions = questions.map((q) => `- ${q}`).join("\n");
+        formattedQuestions = questions
+          .map((question) => `- ${question}`)
+          .join("\n");
       }
 
-      await vapi.start({
-        assistant: interviewer,
-        variables: {
+      await vapi.start(interviewer, {
+        variableValues: {
           questions: formattedQuestions,
         },
       });
     }
-  } catch (error) {
-    console.error("Error starting call:", error);
-    setCallStatus(CallStatus.INACTIVE);
-  }
-};
-
+  };
 
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
