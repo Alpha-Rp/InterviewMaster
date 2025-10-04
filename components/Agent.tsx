@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
-import { interviewer } from "@/constants";
+import { generator, interviewer } from "@/constants";
 import { createFeedback } from "@/lib/actions/general.action";
 
 enum CallStatus {
@@ -114,37 +114,43 @@ const Agent = ({
     }
   }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
-  const handleCall = async () => {
-    setCallStatus(CallStatus.CONNECTING);
+ const handleCall = async () => {
+  setCallStatus(CallStatus.CONNECTING);
 
+  try {
     if (type === "generate") {
+      // 🆕 Use the new workflow-based approach
       await vapi.start(
-        // undefined,
-        // undefined,
-        // undefined,
-        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!,
+        undefined,
         {
           variableValues: {
             username: userName,
             userid: userId,
           },
-        }
+          clientMessages: ["transcript"],
+          serverMessages: [],
+        },
+        generator // 👈 The workflow object from constants/index.ts
       );
     } else {
       let formattedQuestions = "";
       if (questions) {
-        formattedQuestions = questions
-          .map((question) => `- ${question}`)
-          .join("\n");
+        formattedQuestions = questions.map((q) => `- ${q}`).join("\n");
       }
 
       await vapi.start(interviewer, {
         variableValues: {
           questions: formattedQuestions,
         },
+        clientMessages: ["transcript"],
+        serverMessages: [],
       });
     }
-  };
+  } catch (error) {
+    console.error("Error starting call:", error);
+    setCallStatus(CallStatus.INACTIVE);
+  }
+};
 
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);

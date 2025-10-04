@@ -1,4 +1,5 @@
 import { CreateAssistantDTO } from "@vapi-ai/web/dist/api";
+import { CreateWorkflowDTO } from "@vapi-ai/web/dist/api";
 import { z } from "zod";
 
 export const mappings = {
@@ -228,3 +229,35 @@ export const dummyInterviews: Interview[] = [
     createdAt: "2024-03-14T15:30:00Z",
   },
 ];
+
+
+export const generator: CreateWorkflowDTO = {
+  name: "Generate Interview",
+  nodes: [
+    {
+      name: "start",
+      type: "conversation",
+      isStart: true,
+      metadata: { position: { x: 0, y: 0 } },
+      prompt: "Greet the user and help them create a new AI Interviewer",
+      voice: { model: "aura-2", voiceId: "thalia", provider: "deepgram" },
+      variableExtractionPlan: {
+        output: [
+          { title: "level", type: "string", enum: ["entry", "mid", "senior"] },
+          { title: "amount", type: "number", enum: [] },
+          { title: "techstack", type: "string", enum: [] },
+          { title: "role", type: "string", enum: [] },
+          { title: "type", type: "string", enum: ["behavioural", "technical", "mixed"] },
+        ],
+      },
+    },
+    // You can add more nodes here if needed
+  ],
+  edges: [
+    {
+    from: "start",
+    to: "hangup", // or the next node
+    condition: { type: "ai", prompt: "" }
+  }
+  ],
+};
